@@ -1,0 +1,3 @@
+#!/bin/bash
+
+hummin s "$1" | cut -d ' ' -f1 > /tmp/out; cat -v /tmp/out | sed 's/\^\[\[35m//' | while read line; do hummin g $line; done

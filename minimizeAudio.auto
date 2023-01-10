@@ -1,0 +1,1 @@
+find ~/media/audio -not -name "*opus" | parallel -u minimize_audio.sh

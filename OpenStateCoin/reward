@@ -1,0 +1,20 @@
+title=$(curl -s $1 | grep -o '<h1>.*</\h1>' | sed s/'\/'// | sed s/'<h1>'//g | sed s/'Lesson: '//)
+value=$(( $(curl -s "$1" | html2text | wc -w ) - 139 ))
+TOC='/home/cypherp01nt/education/books/docs.oracle.com/javase/tutorial/java/TOC.html'
+summaryPattern="<h1>Trail: Learning the Java Language: Table of Contents.*<\/h1>"
+sed -i s/">$title<\/a>"/">$title (earned $value!)<\/a>"/ $TOC
+totalEarnedRaw=$(grep -o "[1234567890][1234567890]*!" $TOC)
+totalEarned=0;
+for i in $totalEarnedRaw
+do
+	value=$(echo $i | cut -d '!' -f 1)
+	let totalEarned+=$value
+done
+updatedSummaryPattern="<h1>Trail: Learning the Java Language: Table of Contents ($totalEarned OpenStateCoins earned in total!)<\/h1>"
+sed -i s/"$summaryPattern"/"$updatedSummaryPattern"/ $TOC
+echo $totalEarned
+
+
+echo $title
+echo $value
+

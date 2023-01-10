@@ -1,0 +1,3 @@
+BTCpriceUSD=$(curl --silent --request GET https://blockchain.info/q/24hrprice)
+EuroMultiplicator=0.83
+echo "$BTCpriceUSD * $EuroMultiplicator" | bc

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+remote=pi@192.168.178.40
+
+function action {
+	if [ "$1" = "push" ]; then
+		scp -r -l 4000 "$2" $remote:"$3"
+	elif [ "$1" = "pull" ]; then
+		scp -r -l 4000 $remote:"$2" "$3"
+	fi
+}
+
+if [ ! "$1" ] || [ ! "$2" ] || [ ! "$3" ] ; then
+	echo "usage: pidb push || pull source destination [--no-dereference]"
+	echo
+	echo "config the remote address in this script"
+	exit
+fi
+
+if [ $4 ] && [ $4 != "--no-dereference" ]; then
+	echo "unknown option \"$4\""
+	exit
+fi
+
+if [ "$4" = "--no-dereference" ] && [ "$1" = "push" ]; then
+	if [ $(echo "$2" | head -c 1) != '/' ]; then
+		echo source path has to be absolute
+		exit
+	fi
+	mkdir links
+	find "$2" -type l -exec cp -v --parents --no-dereference '{}' links/ \; -exec rm -v '{}' \;
+	action "$1" "$2" "$3"
+	cp -rv --no-dereference links/* /;
+	rm -rv links/
+	exit
+fi
+
+if [ 1 ]; then
+	action "$1" "$2" "$3"
+fi
