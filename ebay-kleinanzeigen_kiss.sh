@@ -1,9 +1,17 @@
 #!/bin/bash
 
+function fullfil_requirements {
+if [ ! -f /usr/bin/curl ]; then sudo apt install -y curl; fi
+if [ ! -f /usr/bin/markdown ]; then sudo apt install -y markdown; fi
+}
+
+
 if [ ! $3 ]; then 
 	echo usage: ./ebay-kleinanzeigen_kiss.sh searchTerm firstPrice lastPrice
 	exit 1
 fi
+
+fullfil_requirements;
 
 if test -f /tmp/out.html; then rm /tmp/out.html; fi
 if test -f /tmp/gen_out.html.sh; then rm /tmp/gen_out.html.sh; fi

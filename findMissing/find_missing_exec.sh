@@ -5,4 +5,9 @@ compTo=$2
 if [ ! "$(find "$compTo" -name "$fileName")" ]
 then
 	echo $file >> notFound.txt
+	echo
+	echo missing: $fileName
+else
+	echo $file >> found.txt
+	printf .
 fi

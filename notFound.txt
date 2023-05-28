@@ -1,0 +1,7 @@
+/home/igor/.my_programs/download_tor.apk.sh
+/home/igor/.my_programs/f-droid_download_package.sh
+/home/igor/.my_programs/getSize.sh
+/home/igor/.my_programs/disturbShitStorm.sh
+/home/igor/.my_programs/changeBashLocationLink.sh
+/home/igor/.my_programs/getPlaylist
+/home/igor/.my_programs/download_apk.sh

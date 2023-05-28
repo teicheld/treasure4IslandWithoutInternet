@@ -1,0 +1,1 @@
+yt-dlp --get-id "$1" | parallel -u -j 5 yt-dlp --no-playlist -o "'media/video/%(playlist_title)s/%(title)s.%(ext)s'" --external-downloader aria2c --external-downloader-args "'--max-concurrent-downloads=20 --split=10 --min-split-size=2M'"

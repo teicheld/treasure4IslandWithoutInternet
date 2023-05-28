@@ -3,28 +3,27 @@
 #####################################################functions###############################################################################################
 
 function flash {
-	read -p "power off your smartphone and hold the buttons: home + volume down + power"
-	read -p "press here enter if your smartphone is connected with this machine over usb and is in download-mode"
+	read -p "power off your samsung galaxy s3 i9300 and hold the buttons: home + volume down + power"
+	read -p "press here enter if your i9300 is connected with this machine over usb and is in download-mode"
 
 	if [ 'l' == $os ] && [ -f twrp* ]
 	then
 		echo already downloaded file twrp* found. Using this. If you like to download another version, run \'rm files/twrp*\'.
 		recovery=twrp*
 	else
-		read -p "what is the codename of your smartphone?" codename
 		echo "doubleckick on the disired version and press enter:"
-		curl https://eu.dl.twrp.me/$codename/ | grep -o twrp-.*-$codename.img | sed "s/-$codename.*//; s/twrp-//; s/^/'/; s/$/'/" | uniq | awk 'NR<10' | tr '\n' ' '
+		curl https://eu.dl.twrp.me/i9300/ | grep -o twrp-.*-i9300.img | sed "s/-i9300.*//; s/twrp-//; s/^/'/; s/$/'/" | uniq | awk 'NR<10' | tr '\n' ' '
 		read
 		version=$(xclip -out)
-		wget "https://eu.dl.twrp.me/$codename/twrp-${version}-$codename.img" --referer="https://eu.dl.twrp.me/$codename/twrp-${version}-$codename.img"
-		recovery="twrp-${version}-$codename.img"
+		wget "https://eu.dl.twrp.me/i9300/twrp-${version}-i9300.img" --referer="https://eu.dl.twrp.me/i9300/twrp-${version}-i9300.img"
+		recovery="twrp-${version}-i9300.img"
 	fi
 
 
 	if [ 'r' == $os ]
 	then
-		wget 'https://ftp-osl.osuosl.org/pub/replicant/images/replicant-6.0/0003/images/$codename/recovery-$codename.img'
-		recovery="recovery-$codename.img"
+		wget 'https://ftp-osl.osuosl.org/pub/replicant/images/replicant-6.0/0003/images/i9300/recovery-i9300.img'
+		recovery='recovery-i9300.img'
 	fi
 	echo "executing sudo heimdall flash --RECOVERY $recovery --no-reboot"
 
@@ -52,7 +51,6 @@ function sideload_OS {
 			os_file='replicant-6.0-i9300.zip'
 		fi
 	else 
-		pwd
 		if [ -f lineage* ]
 		then
 			os_file=lineage*
@@ -60,7 +58,7 @@ function sideload_OS {
 			echo taking existing file ${os_file}. If you want to use another one, then delete the existing one through executing the command \"rm $(pwd)/lineage*\".
 		else
 			echo "copy the direct link to your favorite version to clipboard (has to end with '.zip' extension if you have choosen it correct)"
-			echo "get it from https://androidfilehost.com/?w=search&s=$codename"
+			echo 'get it from https://androidfilehost.com/?w=search&s=i9300'
 			read -p 'press Enter if your clipboard hold the link'
 			link=$(xclip -out -selection clipboard)
 			wget $link
@@ -111,11 +109,9 @@ function install_needed_software {
 
 
 #####################################################functions_end###########################################################################################
-
-
-
-
 clear
+mkdir -p files/
+cd files/
 
 install_needed_software
 
@@ -123,41 +119,48 @@ echo choose an operating system:
 echo [r]eplicant "(fully open source. buy AR9271 wifi usb adapter and micro usb otg first)"
 echo "[l]ineage (includes proprietary software)" 
 read os
+unset flashed
+while [ ! $flashed ]
+do
+	flash
+done
 
-read -p "wanna install bootloader? [y/n]" answer
-if [ "$answer" == y ]; then
-	unset flashed
-	while [ ! $flashed ]
-	do
-		flash
-	done
+echo now select factory reset somewhere in the menu
+if [ 'l' == $os ]
+then
+	read -p "select 'advanced' > 'adb sideload' and enter sideload-mode"
+else
+	read -p "select 'apply update' > 'adb sideload'"
 fi
 
-read -p "wanna install os? [y/n]" answer
-if [ "$answer" == y ]; then
-	if [ 'l' == $os ]
-	then
-		read -p "select 'advanced' > 'adb sideload' and enter sideload-mode"
-	else
-		read -p "select 'apply update' > 'adb sideload'"
-	fi
-	unset sideloaded
-	while [ ! $sideloaded ]
-	do
-		sideload_OS
-	done
-	if [ 'l' == $os ]
-	then
-		echo if you want to root your device, this function is actually not included in this tool. But go there: https://download.lineageos.org/extras
-	fi
-	echo reboot into your operating system and enable adb.
-	if [ 'r' == $os ]
-	then
-		echo 'goto settings > developer settings > Android debugging'
-	else
-		echo 'goto settings > about phone > tap a few times on Build number to activate dev settings'
-		echo 'goto settings > system (advanced) > Developer settings > Android debugging'
-	fi
-	adb shell 'find sdcard/ -type d -empty -delete'
-	echo done
+unset sideloaded
+while [ ! $sideloaded ]
+do
+	sideload_OS
+done
+
+if [ 'l' == $os ]
+then
+	echo if you want to root your device, this function is actually not included in this tool. But go there: https://download.lineageos.org/extras
 fi
+
+
+echo reboot into your operating system and enable adb.
+if [ 'r' == $os ]
+then
+	echo 'goto settings > developer settings > Android debugging'
+else
+	echo 'goto settings > about phone > tap a few times on Build number to activate dev settings'
+	echo 'goto settings > system (advanced) > Developer settings > Android debugging'
+fi
+
+read -p 'keep the the smartphone connected to the computer'
+echo 'install all apps out of the list apps_to_install.txt which gets generated out of the script generate_apps_to_intstall.txt.sh [y/n] ?' 
+read answer
+if [ 'y' == "$answer" ] 
+then
+	../install_apks.sh "$(pwd)/list_of_apks.txt"
+fi
+adb shell 'find sdcard/ -type d -empty -delete'
+
+echo done

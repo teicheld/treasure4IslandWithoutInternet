@@ -33,6 +33,12 @@ function get_unconform_apks {
 	else
 		wget -nv $(curl https://www.torproject.org/download/ | grep armv7 | awk NR==1 | grep -o https:.*multi.apk)
 	fi
+	fdroid_apks="$(find . -iname '*f-droid*.apk')"
+	if [ "$fdroid_apks" ]; then
+		echo "taking local version: $fdroid_apks"
+	else
+		wget -nv https://f-droid.org/F-Droid.apk
+	fi
 }
 
 function remove_obsolete_apps {
@@ -64,7 +70,7 @@ else
 	use_stdin_as_input
 fi
 
-read -p "install tor [y/n]" answer
+read -p "install tor and f-droid? [y/n]" answer
 if [ "$answer" == 'y' ]; then
 	get_unconform_apks
 	remove_obsolete_apps

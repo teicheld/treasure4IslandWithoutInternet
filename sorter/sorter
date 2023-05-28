@@ -1,5 +1,11 @@
 #!/bin/bash
 
+find -type f -exec mv "{}" . -v \;
+find -empty -type d -delete
+mkdir -p sorter sorter/images sorter/images/organicFinal sorter/images/organic2reduce sorter/images/documentFinal sorter/images/document2reduce
+mkdir -p sorter/videos sorter/videos/2reduce sorter/videos/final
+mkdir -p sorter/pdf
+
 if [ ! -f /usr/bin/feh ]
 then
 	echo wanna install feh
@@ -22,109 +28,150 @@ function installRequirementsVideoConvert {
 		sudo apt install -y exiftool
 	fi
 }
-if [ ! "$(adb devices | awk NR==2 | grep device)" ]; then espeak-ng -v mb-de2 "hallo, ich konnte keine Verbindung mit dem Handy herstellen. Steck es mit einem guten Ladekabel in den Computer"; exit; fi
-mkdir -p sorter/images/organicFinal sorter/images/organic2reduce sorter/images/documentFinal sorter/images/document2reduce
-mkdir -p sorter/videos/2reduce sorter/videos/final
-cd sorter/
-adb pull /sdcard/DCIM/ .
-adb pull /sdcard/OpenNoteScanner/ .
-find -type f \( -name '*jpg' -o -name '*jpeg'  -o -name '*JPG' -o -name '*png' -o -name '*mp4' -o -name '*avi' -o -name '*3gp' -o -name '*webm' -o -name '*mpeg' \) -exec mv "{}" . -v \;
 
 counter=0
-total=$(ls *jpg *jpeg *png *JPG 2>/dev/null | wc -l)
-for i in *jpg *jpeg *png *JPG
+total=$(ls *jpg *jpeg *png *JPG | wc -l)
+for i in ls *jpg *jpeg *png *JPG
 do
 	let counter++
-	if [ -f "$i" ]; then
+	echo "File: $i"
+	feh --fullscreen "$i"
+	read -p "[a] organicKeep [s] organic2reduce [d] documentKeep [f] document2reduce [g] remove [h] rename ...your choise:   	" answer; 
+	newName="$i"
+	if [ $answer == "h" ]; 
+	then
+		read -p "new name ...	" newFilename; 
+		fileExtension=$(echo "$i" | rev | cut -d '.' -f 1 | rev)
+		newName="${newFilename}.$fileExtension"
+		read -p "[a] organicKeep [s] organic2reduce [d] documentKeep [f] document2reduce ...your choise:   	" answer; 
+	fi
+	if [ $answer == "a" ]; 
+	then 
+		mv --verbose "$i" "./sorter/images/organicFinal/$newName"; 
+	elif [ $answer == "s" ]; 
+	then 
+		mv --verbose "$i" "./sorter/images/organic2reduce/$newName"; 
+	elif [ $answer == "d" ]; 
+	then 
+		mv --verbose "$i" "./sorter/images/documentFinal/$newName"; 
+	elif [ $answer == "f" ]; 
+	then
+		mv --verbose "$i" "./sorter/images/document2reduce/$newName"
+	elif [ $answer == "g" ]; 
+	then 
+		rm --verbose "$i"
+	fi
+	echo "${counter}/$total"
+done
+
+
+	for i in ls *mp4 *avi *3gp *webm *mpeg
+	do
 		echo "File: $i"
-		feh --fullscreen "$i"
-		read -p "[a] groß [s] klein [d] documentGroß [f] documentKlein [g] löschen [h] umbenennen  ...deine Auswahl:   	" answer; 
+		cvlc --no-video-title-show "$i"
+		read -p "[a] keep [s] reduce [g] remove [h] rename ...your choise:   	" answer; 
 		newName="$i"
 		if [ $answer == "h" ]; 
 		then
 			read -p "new name ...	" newFilename; 
 			fileExtension=$(echo "$i" | rev | cut -d '.' -f 1 | rev)
 			newName="${newFilename}.$fileExtension"
-			read -p "[a] groß [s] klein [d] documentGroß [f] documentKlein [g] löschen [h] umbenennen  ...deine Auswahl:   	" answer; 
+			echo newName = $newName
+			read -p "[a] keep [s] reduce [g] remove ...your choise:   	" answer; 
 		fi
 		if [ $answer == "a" ]; 
 		then 
-			mv --verbose "$i" "./images/organicFinal/$newName"; 
+			mv --verbose "$i" ./sorter/videos/final/$newName; 
 		elif [ $answer == "s" ]; 
 		then 
-			mv --verbose "$i" "./images/organic2reduce/$newName"; 
-		elif [ $answer == "d" ]; 
-		then 
-			mv --verbose "$i" "./images/documentFinal/$newName"; 
-		elif [ $answer == "f" ]; 
-		then
-			mv --verbose "$i" "./images/document2reduce/$newName"
+			mv --verbose "$i" ./sorter/videos/2reduce/$newName; 
 		elif [ $answer == "g" ]; 
 		then 
-			rm --verbose "$i"
+			rm --verbose "$i"; 
 		fi
-		echo "${counter}/$total"
+	done
+
+for i in ls *pdf
+do
+	echo "File: $i"
+	qpdfview "$i"
+	read -p "[a] keep [s] convert2jpg [g] remove [h] rename...your choise:   	" answer; 
+	newName="$i"
+	if [ $answer == "h" ]; 
+	then
+		read -p "new name ...	" newFilename; 
+		fileExtension=$(echo "$i" | rev | cut -d '.' -f 1 | rev)
+		newName="${newFilename}.$fileExtension"
+		read -p "[a] keep [s] convert2jpg ...your choise:   	" answer; 
+	fi
+	if [ $answer == "a" ]; 
+	then 
+		mv --verbose "$i" ./sorter/pdf/$newName; 
+	elif [ $answer == "s" ]; 
+	then 
+		convert -verbose "$i" "${newName}.jpg"; 
+	elif [ $answer == "g" ]; 
+	then 
+		rm --verbose "$i"; 
 	fi
 done
-if [ "$(echo *mp4 *avi *3gp *webm *mpeg)" != "$(echo '*mp4 *avi *3gp *webm *mpeg')" ]
+	
+for i in sorter/images/*
+do 
+	if [ $(du "$i" | cut -f1) == 4 ] 
+	then 
+		echo "removing empty directories:.." 
+		rm -r --verbose "$i"  
+	fi 
+done
+for i in sorter/videos/*
+do 
+	if [ $(du "$i" | cut -f1) == 4 ] 
+	then 
+		rm -r --verbose "$i"  
+	fi 
+done
+for i in sorter/*
+do 
+	if [ "$(du "$i" | cut -f1)" == 4 ] 
+	then 
+		rm -r --verbose "$i"  
+	fi 
+done
+
+
+read -p "reduce quality of all images in the folders *2reduce now? [y]/[n]:" answer; 
+
+if [ $answer == "y" ]; 
 then 
-	echo "Nun sind die Videos dran"
-	read -p "drücke q um die Videovorschau zu schliessen"
-	for i in *mp4 *avi *3gp *webm *mpeg
+	for i in sorter/images/organic2reduce/*
 	do
-		if [ -f "$i" ]; then
-			echo "File: $i"
-			mpv "$i"
-			read -p "[a] behalten [s] verkleinern [g] entfernen [h] umbenennen ...your choise:   	" answer; 
-			newName="$i"
-			if [ $answer == "h" ]; 
-			then
-				read -p "new name ...	" newFilename; 
-				fileExtension=$(echo "$i" | rev | cut -d '.' -f 1 | rev)
-				newName="${newFilename}.$fileExtension"
-				echo newName = $newName
-				read -p "[a] behalten [s] verkleinern [g] entfernen [h] umbenennen ...your choise:   	" answer; 
-			fi
-			if [ $answer == "a" ]; 
-			then 
-				mv --verbose "$i" ./videos/final/$newName; 
-			elif [ $answer == "s" ]; 
-			then 
-				mv --verbose "$i" ./videos/2reduce/$newName; 
-			elif [ $answer == "g" ]; 
-			then 
-				rm --verbose "$i"; 
-			fi
+		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
+		if [ 400 -lt $size ]
+		then		
+			mogrify -verbose -resize 400 -strip -quality 80 "$i"
+		else
+			echo "file "$i" with the size of $size is not bigger then 400."
+		fi
+	done
+	for i in sorter/images/document2reduce/*
+	do
+		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
+		if [ 400 -lt $size ]
+		then		
+			mogrify -verbose -resize 400 -strip -quality 80 "$i"
+		else
+			echo "file "$i" with the size of $size is not bigger then 400."
 		fi
 	done
 fi
-pwd
-read -p "Soll jetzt die Qualität der Fotos und Videos reduziert werden? [j]/[n]:" answer; 
 
-if [ $answer == "j" ]; 
+
+read -p "reduce quality of all images in the folder organicFinal (which you have choosen for organicKeep) to 800? [y]/[n]:" answer; 
+
+if [ $answer == "y" ]; 
 then 
-	for i in images/organic2reduce/*
-	do
-		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
-		if [ 400 -lt $size ]
-		then		
-			mogrify -verbose -resize 400 -strip -quality 80 "$i"
-		else
-			echo "file "$i" with the size of $size is not bigger then 400."
-		fi
-	done
-	for i in images/document2reduce/*
-	do
-		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
-		if [ 400 -lt $size ]
-		then		
-			mogrify -verbose -resize 400 -strip -quality 80 "$i"
-		else
-			echo "file "$i" with the size of $size is not bigger then 400."
-		fi
-	done
-
-	for i in images/organicFinal/*
+	for i in sorter/images/organicFinal/*
 	do
 		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
 		if [ 800 -lt $size ]
@@ -134,7 +181,7 @@ then
 			echo "file "$i" with the size of $size is not bigger then 800."
 		fi
 	done
-	for i in images/documentFinal/*
+	for i in sorter/images/documentFinal/*
 	do
 		size=$(identify "$i" | cut -d ' ' -f 4 | cut -d 'x' -f 1)
 		if [ 800 -lt $size ]
@@ -145,88 +192,90 @@ then
 		fi
 	done
 fi
-if [ -d videos/2reduce/ ]
+if [ -d sorter/videos/2reduce/ ]
 then
-	if [ $answer == "j" ]; 
+	read -p "reduce quality of all videos in the folder 2reduce to 250:2? [y]/[n]:" answer; 
+	if [ $answer == "y" ]; 
 	then
 		installRequirementsVideoConvert
-		if [ ! -d videos/done ]; then mkdir -p "videos/done"; fi
-		cd "videos/2reduce/"
+		mkdir -p "sorter/videos/done"
+		cd "sorter/videos/2reduce/"
 		for i in *
 		do
 			width=$(exiftool "$i" | grep "Source Image Width" | cut -d ":" -f 2 | cut -d ' ' -f 2) 
-			if [ 480 -lt $width ]
+			if [ 176 -lt $width ]
 			then		
-				echo exexuting ffmpeg -i "$i" -r 13 -vf scale=250:-2 -b:v 64k "../done/$i"
-				ffmpeg -i "$i" -r 13 -vf scale=250:-2 -b:v 64k "../done/$i"
-				if [ -f "$i" ]
+				echo executing ffmpeg -i "$i" -r 2 -vf scale=176:-2 "../../../sorter/videos/done/$i"
+				ffmpeg -i "$i" -r 2 -vf scale=176:-2 "../../../sorter/videos/done/$i"
+				if [ -f "../../../sorter/videos/done/$i" ]
 				then
 					rm -v "$i"
 				else
 					echo couldnt reduce the quality of file $i
 				fi
 			else
-				echo "file "$i" with the width of $width is not bigger then 480."
-				mv -v $i "../done/$i"
+				echo "file "$i" with the width of $width is not bigger then 176. But i bet it have a higher framerate than 2 per seconds. Lets ditch the rest:)"
+				echo executing ffmpeg -i "$i" -r 2 "../../../sorter/videos/done/$i"
+				ffmpeg -i "$i" -r 2 "../../../sorter/videos/done/$i"
+				if [ -f "../../../sorter/videos/done/$i" ]
+				then
+					rm -v "$i"
+				else
+					echo couldnt reduce the quality of file $i
+				fi
 			fi
 		done
-	else
-		for i in *
-		do
-			mv -v $i "../done/$i"
-		done
+		cd ../../../
 	fi
-	cd ../../
 fi
 
 if [ -d sorter/videos/final/ ] 
 then
-	if [ $answer == "j" ]; 
+	read -p "reduce quality of all videos in the folder final to 400:-2? [y]/[n]:" answer; 
+	if [ $answer == "y" ]; 
 	then 
 		installRequirementsVideoConvert
-		if [ ! -d videos/done ]; then mkdir -p "videos/done"; fi
-		cd videos/final/
+		mkdir -p "sorter/videos/done"
+		cd sorter/videos/final/
 		for i in *
 		do
 			width=$(exiftool "$i" | grep "Source Image Width" | cut -d ":" -f 2 | cut -d ' ' -f 2)
-			if [ 640 -lt $width ]
+			if [ 400 -lt $width ]
 			then		
-				echo "executing ffmpeg -i "$i" -r 17 -vf scale=400:-2 -b:v 120k "../done/$i""
-				ffmpeg -i "$i" -r 17 -vf scale=640:-2 "../done/$i"
-				if [ -f "../videos/done/$i" ]
+				echo "executing ffmpeg -i "$i" -r 7 -vf scale=400:-2 "../../../sorter/videos/done/$i""
+				ffmpeg -i "$i" -r 7 -vf scale=400:-2 "../../../sorter/videos/done/$i"
+				if [ -f "../../../sorter/videos/done/$i" ]
 				then
 					rm -v "$i"
 				else
 					echo couldnt reduce the quality of file $i
 				fi
 			else
-				echo "file "$i" with the width of $width is not bigger then 640."
-				mv -v $i "../done/$i"
+				echo width $width of "file "$i" is not bigger then 400. But i bet it have a higher framerate than 7 per seconds. Lets ditch the rest:)"
+				echo executing ffmpeg -i "$i" -r 7 "../../../sorter/videos/done/$i"
+				ffmpeg -i "$i" -r 7 "../../../sorter/videos/done/$i"
+				if [ -f "../../../sorter/videos/done/$i" ]
+				then
+					rm -v "$i"
+				else
+					echo couldnt reduce the quality of file $i
+				fi
 			fi
 		done
-	else
-		for i in *
-		do
-			mv -v $i "../done/$i"
-		done
+		cd ../../../
 	fi
-	cd ../../
 fi
 
+mkdir sorter/images/organic/ sorter/images/documents/
+mv sorter/images/organicFinal/* sorter/images/organic/
+mv sorter/images/organic2reduce/* sorter/images/organic/
+mv sorter/images/documentFinal/* sorter/images/documents/
+mv sorter/images/document2reduce/* sorter/images/documents/
+mv sorter/videos/done/* sorter/videos/
 
-mkdir images/organic/ images/documents/
-if [ -d images/organicFinal/ ]; then mv images/organicFinal/* images/organic/; fi
-if [ -d images/organic2reduce/ ]; then mv images/organic2reduce/* images/organic/; fi
-if [ -d images/documentFinal/ ]; then mv images/documentFinal/* images/documents/; fi
-if [ -d images/documents2reduce/ ]; then mv images/document2reduce/* images/documents/; fi
-if [ -d videos/done/ ]; then mv videos/done/* videos/; fi
 find -empty -type d -delete
-cd ..
 
-read -p "sollen die vom Handy heruntergeleadenen Dateien auf dem Handy gelöscht werden? [j/n]  " answerHandy
-
-if [ $answerHandy == 'j' ]; then adb shell rm -r sdcard/DCIM sdcard/OpenNoteScanner; fi
-
-echo "Die Dateien befinden sich jetzt im Ordner 'sorter'. Du kannst diese in dein Heimatverzeichnis einsortieren."
-echo "Markiere den folgenden Befehl um dies zu tun."
-echo "cp -rv sorter/* .; rm -rv sorter"
+if [ -d sorter/videos/2reduce/ ] ||  [ -d sorter/videos/final/ ] 
+then
+	echo the video conversion didnt happend. 
+fi
