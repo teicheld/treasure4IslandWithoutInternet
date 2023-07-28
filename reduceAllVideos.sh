@@ -61,8 +61,4 @@ then
 else
 	printf "$file
 	echo has an entry in the statusFile $statusFile"
-#else
-#	echo width $width_get of "file "$file" is not bigger then 300. But i bet it have a higher framerate than 1 per seconds. Lets ditch the rest:)"
-#	ffmpeg -i "$file" -r $fps "${basepath}_reduced.${ext}"
-#	[ -f "${basepath}_reduced.${ext}" ] && rm -v "$file" || echo couldnt reduce the quality of file "${basepath}_reduced.${ext}"
 fi
