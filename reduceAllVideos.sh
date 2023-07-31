@@ -1,9 +1,19 @@
 #!/bin/bash
 
 ################### dependencies ###########
-#for i in exiftool ffmpeg; do
-#	[ ! -f /usr/bin/$i ] && sudo apt install $i 
-#done
+[ "$(whoami | grep u0)" ] && isArm=1 || isX86=1
+if [ $isArm ]; then
+	for i in exiftool ffmpeg; do
+		[ ! -f /usr/bin/$i ] && apt install $i 
+	done
+elif [ $isX86 ]; then
+	for i in exiftool ffmpeg; do
+		[ ! -f /usr/bin/$i ] && sudo apt install $i 
+	done
+else
+	echo "unreachable code"
+	exit
+fi
 ##########################################
 
 defaultCRF=34
@@ -52,13 +62,16 @@ basepath=$(echo "$file" | rev | cut -d '.' -f 2- | rev)
 ext=$(echo "$file" | rev | cut -d '.' -f 1 | rev)
 width_get=$(exiftool "$file" | grep "Source Image Width" | cut -d ":" -f 2 | cut -d ' ' -f 2)
 statusFile=~/media/video/.converting
-if [ -f "$statusFile" ] && [ ! "$(grep "$file" "$statusFile")" ]
+isInStatusFile="$(grep "$file" "$statusFile")"
+if [ -f "$statusFile" ] && [ ! "$isInStatusFile" ]
 then
 	echo "$file" >> "$statusFile"
 	ffmpeg -i "$file" -vf scale=$width_set:-2 -vcodec libx265 -crf $CRF -c:a libopus -ac 1 -ar 16000 -b:a ${audioBitrate}K -vbr constrained "${basepath}_reduced.${ext}" 2>/dev/null
 	[ -f "${basepath}_reduced.${ext}" ] && rm "$file" || echo couldnt reduce the quality of file "${basepath}_reduced.${ext}"
 	sed -i "/$file/d" "$statusFile"
-else
+elif [ "$isInStatusFile" ]
 	printf "$file
 	echo has an entry in the statusFile $statusFile"
+else
+	echo "unreachable code"
 fi
