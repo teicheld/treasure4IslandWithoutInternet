@@ -1,6 +1,6 @@
 function install_dependencies {
-	for tool in parallel yt-dlp; do [ ! -f /usr/bin/$tool ] && sudo apt install -y $tool; done
-	[ ! -f /usr/bin/aria2c ] && sudo apt install -y aria2
+	for tool in parallel yt-dlp; do [ ! -f /usr/bin/$tool ] && sudo apt install $tool; done
+	[ ! -f /usr/bin/aria2c ] && sudo apt install aria2
 }
 
 install_dependencies
