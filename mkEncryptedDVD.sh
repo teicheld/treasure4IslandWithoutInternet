@@ -7,7 +7,6 @@ function install_dependencies {
 
 function create {
 	nextLoop=$(($(lsblk | grep loop | cut -d ' ' -f1 | sed 's/loop//' | tail --bytes=2) + 1)) # works only from loop1-loop9
-	nextDVD=$(($(cd ~/DVDcreator 2>/dev/null &&  ls DVD*.iso 2>/dev/null | sed 's/DVD//;s/.iso//' | tail --bytes=2)+1)) # cannot go over 9
 	read -sp "Enter password (will not be echoed): " password
 
 	mkdir -vp ~/DVDcreator/decryptedDVD$nextDVD
@@ -33,15 +32,19 @@ function purge {
 	sudo rm -riv ~/DVDcreator
 }
 
-#function mount {
-#	# ???? sudo mount --verbose 
-#}
+function mount {
+	[ ! "$2" ] && echo "must provide path2file" && exit
+	[ ! -f "$2" ] && echo "$2 does not exist" && exit
+	sudo cryptsetup --verbose luksOpen "$2" decryptedDVD$nextDVD  || exit		# cryptsetup handles the loopStuff automatically, but its interesing to have this bunch of not wrong extra code up there :) (and wierdly I hold on on things which took me some effort while only results are counting (effort = cpy(data, brain))
+	sudo mount --verbose /dev/mapper/decryptedDVD$nextDVD ~/DVDcreator/decryptedDVD$nextDVD || exit
+}
 
 function printOptions {
-	printf "usage:\nmkEncryptedDVD.sh [create] [close] [purge] \n"
+	printf "usage:\nmkEncryptedDVD.sh [create] [close] [purge] [mount path2file] \n"
 }
 
 install_dependencies
+nextDVD=$(($(cd ~/DVDcreator 2>/dev/null &&  ls DVD*.iso 2>/dev/null | sed 's/DVD//;s/.iso//' | tail --bytes=2)+1)) # cannot go over 9
 
 if [ "$1" ]; then
 	case "$1" in
@@ -53,6 +56,9 @@ if [ "$1" ]; then
 			;;
 		purge)
 			purge
+			;;
+		mount)
+			mount	
 			;;
 		*)
 			printOptions
