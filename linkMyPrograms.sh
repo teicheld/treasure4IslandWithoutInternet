@@ -1,5 +1,5 @@
 locBin=$HOME/../usr/bin
-locMyPrograms=$locBin/.my_programs
+locMyPrograms=$locBin/treasure4IslandWithoutInternet
 for i in $locMyPrograms/*; do
-	ln -s "$i" "$locBin" 2>/dev/null
+	ln -fs "$i" "$locBin"
 done
