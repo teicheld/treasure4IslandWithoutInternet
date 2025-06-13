@@ -7,7 +7,15 @@ function install_dependencies {
 
 function create {
 	nextLoop=$(($(lsblk | grep loop | cut -d ' ' -f1 | sed 's/loop//' | tail --bytes=2) + 1)) # works only from loop1-loop9
-	read -sp "Enter password (will not be echoed): " password
+
+	password2="7654erdfghviu89765rtfghjiou876t5rrdtfghjiu876t5r4ertdghuy78t6r5d"
+	while [ "$password" != "$password2" ]; do
+		read -sp "Enter password (will not be echoed): " password
+		echo
+		read -sp "Enter password again (will not be echoed): " password2
+		echo
+	done
+
 
 	mkdir -vp ~/DVDcreator/decryptedDVD$nextDVD
 	truncate --size=4482M ~/DVDcreator/DVD$nextDVD.iso # losetup cannot work with the power of 10. it results in cutting of the end of the image, which results in a mounting error, which can circumwented by providing -o ro,noload option to mount. you have to use the binary steps of counting, the MB instead of the M for truncate. i calculated the correct value through 4700000000/1024/1024 and throwing away the rest.
