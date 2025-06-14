@@ -43,8 +43,8 @@ function purge {
 function mount {
 	[ ! "$1" ] && echo "must provide path2file" && exit
 	[ ! -f "$1" ] && echo "$1 does not exist" && exit
-	sudo cryptsetup --verbose luksOpen "$1" decryptedDVD$nextDVD  || exit		# cryptsetup handles the loopStuff automatically, but its interesing to have this bunch of not wrong extra code up there :) (and wierdly I hold on on things which took me some effort while only results are counting (effort = cpy(data, brain))
-	sudo mount --verbose /dev/mapper/decryptedDVD$nextDVD ~/DVDcreator/decryptedDVD$nextDVD || exit
+	sudo cryptsetup --verbose luksOpen "$1" decryptedDVD$((nextDVD -1))  || exit		# cryptsetup handles the loopStuff automatically, but its interesing to have this bunch of not wrong extra code up there :) (and wierdly I hold on on things which took me some effort while only results are counting (effort = cpy(data, brain))
+	sudo mount --verbose /dev/mapper/decryptedDVD$((nextDVD -1)) ~/DVDcreator/decryptedDVD$((nextDVD -1)) || exit
 }
 
 function printOptions {
