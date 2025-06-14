@@ -9,6 +9,12 @@ function create {
 	nextLoop=$(($(lsblk | grep loop | cut -d ' ' -f1 | sed 's/loop//' | tail --bytes=2) + 1)) # works only from loop1-loop9
 
 	password2="7654erdfghviu89765rtfghjiou876t5rrdtfghjiu876t5r4ertdghuy78t6r5d"
+
+	isPasswordInFile=0;
+	if [ -f '/tmp/mkEncrypted' ]; then
+		password="$(cat /tmp/mkEncrypted)"
+		password2="$(cat /tmp/mkEncrypted)"
+	fi
 	while [ "$password" != "$password2" ]; do
 		read -sp "Enter password (will not be echoed): " password
 		echo
